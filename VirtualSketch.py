@@ -48,7 +48,7 @@ while cap.isOpened():
         # tip of mid finger
         midFx, midFy = lmList[12][1:]
 
-        # fingers up detection
+        # fingers up detectionq
         fingers = detector.fingerUp()
 
         # Pause Mode
@@ -71,11 +71,7 @@ while cap.isOpened():
             indFy = yPrevious + (indFy - yPrevious) // smooth
 
             # cv2.line(frame, (xPrevious, yPrevious), (indFx, indFy), drawColor, brushThickness)
-            # Calculate Euclidean distance
-            distance = int((math.dist((xPrevious, yPrevious), (indFx, indFy))))
-            nippleThickness = brushThickness // distance if distance > 0 else brushThickness
-            nippleThickness = nippleThickness if nippleThickness > 0 else MIN_DISTANCE_THRESHOLD
-            cv2.line(imgCanvas, (xPrevious, yPrevious), (indFx, indFy), drawColor, nippleThickness)
+            cv2.line(imgCanvas, (xPrevious, yPrevious), (indFx, indFy), drawColor, brushThickness)
             # update previous point
             xPrevious, yPrevious = indFx, indFy
 
