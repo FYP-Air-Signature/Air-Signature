@@ -8,6 +8,7 @@ import subprocess
 from PIL import Image, ImageTk
 import shutil
 import tempfile
+from Signing import Signing as sgn
 
 
 class ShowPdf(pdf.ShowPdf):
@@ -77,6 +78,7 @@ class PDFViewerApp(Canvas):
 
         # Temporary directory
         self.tempDir = None
+        self.currentTempPath = None
 
     def load_pdf(self):
         # Open a file dialog to select a PDF file
@@ -159,14 +161,16 @@ class PDFViewerApp(Canvas):
         print('PDF Closed!')
 
     def load_img(self):
-        img_path = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg;*.jpeg;*.png")])
+        # img_path = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg;*.jpeg;*.png")])
+        airSignComponent = sgn.AirSigning()
+        img_path = airSignComponent.drawSign(self.tempDir.name)
 
         if img_path:
             # Open the image file and display it on the PDF canvas
-            image = Image.open(img_path).convert("RGBA")
+            image = Image.open(img_path).convert('RGBA')
             image.thumbnail((150, 40), Image.ANTIALIAS)
             self.photo = ImageTk.PhotoImage(image)
-            self.image_item = Label(master=self.canvas, image=self.photo, takefocus=True)
+            self.image_item = Label(master=self.canvas, image=self.photo, takefocus=True, bd=0)
             self.image_item.pack(side=LEFT)
             self.image_item.place(relx=0, rely=0)
 
@@ -224,7 +228,6 @@ if __name__ == "__main__":
     root.title('PDF Opener')
     root.configure(bg='black')
     root.geometry("630x700+700+100")
-
     app = PDFViewerApp(root)
 
     root.mainloop()

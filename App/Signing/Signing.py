@@ -8,7 +8,7 @@ from App.Signing.HandTracker import htm
 
 class AirSigning():
 
-    def __init__(self, defaultCam = 0):
+    def __init__(self, defaultCam=0):
         ####################################
         self.primaryCam = defaultCam
         self.camHeight, self.camWidth = 540, 960
@@ -23,7 +23,7 @@ class AirSigning():
         MIN_DISTANCE_THRESHOLD = 1
         ####################################
 
-    def drawSign(self):
+    def drawSign(self, filePath):
         # Connect to webcam
         cap = cv2.VideoCapture(self.primaryCam)
         cap.set(3, self.camWidth)
@@ -61,7 +61,8 @@ class AirSigning():
                     xPrevious, yPrevious = 0, 0
 
                 # Draw Mode
-                if fingers[1] and not fingers[2] and not fingers[3] and not fingers[4] and rectIniWid < indFx < rectEndWid \
+                if fingers[1] and not fingers[2] and not fingers[3] and not fingers[
+                    4] and rectIniWid < indFx < rectEndWid \
                         and rectIniHei < indFy < rectEndHei:
 
                     # print("Draw")
@@ -72,9 +73,8 @@ class AirSigning():
                         xPrevious, yPrevious = indFx, indFy
 
                     # # smoothening
-                    indFx = xPrevious + (indFx - xPrevious)// self.smooth
+                    indFx = xPrevious + (indFx - xPrevious) // self.smooth
                     indFy = yPrevious + (indFy - yPrevious) // self.smooth
-
 
                     cv2.line(imgCanvas, (xPrevious, yPrevious), (indFx, indFy), self.drawColor, self.brushThickness)
                     # update previous point
@@ -93,10 +93,13 @@ class AirSigning():
 
             # Show image
             cv2.imshow('Webcam', frame)
-            #cv2.imshow('ImgCanvas', imgCanvas)
+            # cv2.imshow('ImgCanvas', imgCanvas)
 
             # Checks whether q has been hit and stops the loop
             if cv2.waitKey(1) & 0xFF == ord('q'):
+                pngOfSign = self.removeBlackBackground(imgCanvas)
+                # save the image as a PNG file in the specified path
+                cv2.imwrite(filePath + "\\tempSign.png", pngOfSign[rectIniHei:rectEndHei, rectIniWid:rectEndWid])
                 break
 
         # Releases the webcam
@@ -104,6 +107,26 @@ class AirSigning():
         # Closes the frame
         cv2.destroyAllWindows()
 
+        return filePath + "\\tempSign.png"
+
+    def removeBlackBackground(self, imgCanvas):
+        # convert the image to grayscale
+        gray = cv2.cvtColor(imgCanvas, cv2.COLOR_BGR2GRAY)
+
+        # threshold the image to create a mask
+        _, mask = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY)
+
+        # invert the mask
+        mask_inv = cv2.bitwise_not(mask)
+
+        # apply the mask to the image
+        img_masked = cv2.bitwise_and(imgCanvas, imgCanvas, mask=mask)
+
+        # add an alpha channel to the image
+        alpha = np.ones(imgCanvas.shape[:2], dtype=np.uint8) * 255
+        alpha[mask_inv == 255] = 0
+        return cv2.merge((img_masked, alpha))
+
 if __name__ == "__main__":
     signComponent = AirSigning()
-    signComponent.drawSign()
+    signComponent.drawSign("")
