@@ -12,3 +12,7 @@ Downgrade protobuf
 ```sh
 pip install protobuf==3.15.6
 ```
+
+```sh
+pip install --upgrade pymupdf==1.18.17
+```
