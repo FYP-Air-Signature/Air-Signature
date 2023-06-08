@@ -3,3 +3,4 @@
 Lib
 *.pyc
 dist
+App/verification/air_signature_model/v1

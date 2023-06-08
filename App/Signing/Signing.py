@@ -16,7 +16,7 @@ class AirSigning():
         self.drawColor = (141, 43, 193)
         self.brushThickness = 5
 
-        self.smooth = 2
+        self.smooth = 3
         ####################################
 
         ########## CONSTANTS ###############
@@ -49,9 +49,6 @@ class AirSigning():
             if len(lmList) != 0:
                 # tip of index finger
                 indFx, indFy = lmList[8][1:]
-
-                # tip of mid finger
-                midFx, midFy = lmList[12][1:]
 
                 # fingers up detectionq
                 fingers = self.detector.fingerUp()
