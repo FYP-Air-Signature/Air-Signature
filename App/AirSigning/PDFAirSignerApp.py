@@ -185,7 +185,7 @@ class PDFAirSignerApp(Canvas):
     def sign_pdf(self):
         # List of Python scripts to run
         scripts = ["python", "signPdfProcess/signpdf.py", self.fileName, self.imageName, "--coords",
-                   "{}x{}x{}x{}x{}".format(self.current_page + 1, (self.X - (self.img_dim[0] // 2) - 76),
+                   "{}x{}x{}x{}x{}".format(self.current_page + 1, (self.X - (self.img_dim[0] // 2)),
                                            (math.ceil(self.page_dim.height) - (self.Y + self.img_dim[1] // 2) + 10),
                                            self.photo.width(), self.photo.height())]
 
@@ -210,10 +210,3 @@ class PDFAirSignerApp(Canvas):
         except KeyboardInterrupt:
             print("Script execution interrupted by user.")
 
-if __name__ == "__main__":
-    root = Tk()
-    root.configure(bg='black')
-    root.title('Air Signing')
-    root.geometry("630x700+700+100")
-    app = PDFAirSignerApp(root)
-    root.mainloop()

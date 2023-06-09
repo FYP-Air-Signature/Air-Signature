@@ -1,7 +1,7 @@
-import subprocess
 from tkinter import *
 from tkinter import messagebox
 
+from App.AirSigning.PDFAirSignerApp import PDFAirSignerApp
 
 signature = Tk()
 signature.rowconfigure(0, weight=1)
@@ -112,7 +112,7 @@ signButton = Button(
     cursor="hand2",
     activebackground="#272A37",
     activeforeground="#ffffff",
-    command=lambda : subprocess.run(["python", "AirSigning/PDFAirSignerApp.py"], shell=True)
+    command=lambda : PDFAirSignWithoutVerify()
 )
 signButton.place(x=75, y=140, width=350, height=350)
 
@@ -749,6 +749,13 @@ def signin():
 
         print(login_user.values())
 
+def PDFAirSignWithoutVerify():
+    root = Tk()
+    root.configure(bg='black')
+    root.title('Air Signing')
+    root.geometry("630x700+700+100")
+    app = PDFAirSignerApp(root)
+    root.mainloop()
 
 signature.resizable(False, False)
 signature.mainloop()
