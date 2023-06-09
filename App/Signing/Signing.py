@@ -1,7 +1,7 @@
 # Import opencv for computer vision stuff
 import cv2
 import numpy as np
-
+from PIL import ImageFont, ImageDraw, Image
 # Import hand Tracking Module
 from App.Signing.HandTracker import htm
 
@@ -87,6 +87,17 @@ class AirSigning():
             frame = cv2.bitwise_or(frame, imgCanvas)
 
             frame = cv2.rectangle(frame, (rectIniWid, rectIniHei), (rectEndWid, rectEndHei), (0, 78, 0), 2)
+            # put text
+            # Choose the font style and scale
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            font_scale = 0.8
+
+            # Set the position and color for the text
+            position = (self.camWidth // 2, self.camHeight - 30)  # Top-left corner coordinates
+            color = (0, 0, 0)  # White color
+
+            # Put the text on the image
+            cv2.putText(frame, "After draw press 'Q' to continue - >", position, font, font_scale, color, 2, cv2.LINE_AA)
 
             # Show image
             cv2.imshow('Webcam', frame)
@@ -123,6 +134,7 @@ class AirSigning():
         alpha = np.ones(imgCanvas.shape[:2], dtype=np.uint8) * 255
         alpha[mask_inv == 255] = 0
         return cv2.merge((img_masked, alpha))
+
 
 if __name__ == "__main__":
     signComponent = AirSigning()

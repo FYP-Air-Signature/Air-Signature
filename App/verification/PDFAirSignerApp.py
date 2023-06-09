@@ -1,13 +1,10 @@
 import math
 import os
-from tkinter import filedialog
-
+import sys
 from App.AirSigning.ShowPdf import ShowPdf
 from App.Signing import Signing
 from PyPDF2 import PdfReader
 import subprocess
-import shutil
-import tempfile
 from tkinter import *
 from PIL import Image, ImageTk
 
@@ -45,11 +42,6 @@ class PDFAirSignerApp(object):
         self.v1 = ShowPdf()
         self.v2 = None
 
-        # Create a button to open a PDF file
-        self.open_button = Button(self.master, text='Open PDF', command=self.load_pdf, width=20, font='arial 20',
-                                  bd=4, cursor="hand2", )
-        self.open_button.pack(side=TOP, anchor='center')
-
         # Create a button to close the PDF file
         self.close_button = Button(self.master, text='Save & Close PDF', command=self.close_pdf, width=20,
                                    font='arial 20', bd=4, cursor="hand2", state=DISABLED)
@@ -64,31 +56,14 @@ class PDFAirSignerApp(object):
         self.img_button = Button(self.master, text="Select Signature", command=self.load_img, width=20, cursor="hand2",
                                  font='arial 20', bd=4, state=DISABLED)
         self.img_button.pack(side=TOP, anchor='center')
+        self.filePath = None
+        self.userName = sys.argv[2]
 
-        # Temporary directory
-        self.tempDir = None
-        self.currentTempPath = None
-
-    def load_pdf(self):
-        # Open a file dialog to select a PDF file
-        file_path = filedialog.askopenfilename(filetypes=[('PDF Files', '*.pdf')], initialdir=os.getcwd(),
-                                               title='Select pdf File')
+    def load_pdf(self, file_path):
 
         # If a file was selected, read the PDF file and display it in a Canvas widget
         if file_path:
-            # create a temporary directory in the current project directory
-            temp_dir = tempfile.TemporaryDirectory(dir=os.getcwd() + "\\AirSigning\\temp")
-            newFilePath = temp_dir.name + "\\" + file_path.split("/")[-1]
-            shutil.copy(file_path, newFilePath)
-
-            # Wait until the file has been completely copied
-            while True:
-                try:
-                    shutil.copystat(file_path, newFilePath)
-                    break
-                except OSError:
-                    pass
-            file_path = newFilePath
+            self.filePath = file_path
             # Load PDF page and get its dimensions
             doc = PdfReader(file_path)
             page = doc.getPage(0)
@@ -121,7 +96,7 @@ class PDFAirSignerApp(object):
             self.file_label.config(text=f"Loaded PDF file: {self.fileName}")
             self.img_button.config(state=ACTIVE if len(self.fileName) > 0 else DISABLED)
             self.close_button.config(state=ACTIVE if len(self.fileName) > 0 else DISABLED)
-            self.tempDir = temp_dir
+
             print('PDF Opened.')
 
         else:
@@ -146,12 +121,15 @@ class PDFAirSignerApp(object):
         self.sign_button.config(state=DISABLED)
         self.img_button.config(state=DISABLED)
         self.close_button.config(state=DISABLED)
-        self.tempDir.cleanup()
+        os.remove(self.filePath)
         print('PDF Closed!')
+        exit()
 
     def load_img(self):
         airSignComponent = Signing.AirSigning()
-        img_path = airSignComponent.drawSign(self.tempDir.name)
+        img_path = airSignComponent.drawSign(f"verification//application_data//{self.userName}//new_sign")
+
+        # Todo Verification...
 
         if img_path:
             # Open the image file and display it on the PDF canvas
@@ -218,5 +196,8 @@ if __name__ == "__main__":
     root = Tk()
     root.title('PDF Opener')
     root.configure(bg="#525561")
+
     app = PDFAirSignerApp(root)
+    app.load_pdf(sys.argv[1])
     root.mainloop()
+

@@ -1,7 +1,9 @@
+import subprocess
 from tkinter import *
 from tkinter import messagebox
 
-from App.AirSigning.PDFAirSignerApp import PDFAirSignerApp
+from App.verification.Authentication import AuthAPI
+from App.verification.PdfAPI import PdfAPI
 
 signature = Tk()
 signature.rowconfigure(0, weight=1)
@@ -18,8 +20,13 @@ signature.title('Air Signature')
 sign_in = Frame(signature)
 sign_up = Frame(signature)
 index_page = Frame(signature)
+load_pdf = Frame(signature)
 
-for frame in (index_page, sign_in, sign_up):
+authentication = None
+pdfApi = PdfAPI()
+AUTHENTICATE = False
+
+for frame in (index_page, sign_in, sign_up, load_pdf):
     frame.grid(row=0, column=0, sticky='nsew')
 
 
@@ -48,7 +55,7 @@ index_bg_image = Label(
     image=index_page_bg_image,
     bg="#525561"
 )
-index_bg_image.place(x=120, y=28)
+index_bg_image.place(x=120, y=25)
 
 # ================ Header Text Left ====================
 index_headerText_image_left = PhotoImage(file="assets\\headerText_image.png")
@@ -97,7 +104,7 @@ signButton = Button(
     cursor="hand2",
     activebackground="#272A37",
     activeforeground="#ffffff",
-    command=lambda: show_frame(sign_in),
+    command=lambda: clickVerification(),
 )
 signButton.place(x=590, y=140, width=350, height=350)
 
@@ -112,7 +119,7 @@ signButton = Button(
     cursor="hand2",
     activebackground="#272A37",
     activeforeground="#ffffff",
-    command=lambda : PDFAirSignWithoutVerify()
+    command=lambda :sign_without_verify()
 )
 signButton.place(x=75, y=140, width=350, height=350)
 
@@ -508,11 +515,10 @@ def signup():
 
         clear_signup()
         show_frame(sign_in)
-        print(user.values())
 
 
 # ====================================================================================
-# =========================== LOGIN PAGE START HERE ================================
+# =========================== LOGIN PAGE START HERE ==================================
 # ====================================================================================
 
 # Login Text Variables
@@ -547,25 +553,6 @@ Login_headerText1 = Label(
     bg="#272A37"
 )
 Login_headerText1.place(x=110, y=45)
-
-# ================ Header Text Right ====================
-# Login_headerText_image_right = PhotoImage(file="assets\\headerText_image.png")
-# Login_headerText_image_label2 = Label(
-#     bg_imageLogin,
-#     image=Login_headerText_image_right,
-#     bg="#272A37"
-# )
-# Login_headerText_image_label2.place(x=400, y=45)
-#
-# Login_headerText2 = Label(
-#     bg_imageLogin,
-#     anchor="nw",
-#     text="Some Extra Text",
-#     fg="#FFFFFF",
-#     font=("yu gothic ui Bold", 20 * -1),
-#     bg="#272A37"
-# )
-# Login_headerText2.place(x=450, y=45)
 
 # ================ LOGIN TO ACCOUNT HEADER ====================
 loginAccount_header = Label(
@@ -690,16 +677,17 @@ Login_button_1 = Button(
 Login_button_1.place(x=120, y=445, width=333, height=65)
 
 # ================ Home Button ====================
-home_image_right = PhotoImage(file="assets\\home.png", palette='red')
+pdf_home_image_right = PhotoImage(file="assets\\home.png", palette='red')
 home_button = Button(
     bg_imageLogin,
-    image=home_image_right,
+    image=pdf_home_image_right,
     borderwidth=0,
     highlightthickness=0,
     command=lambda: show_frame(index_page),
     relief="flat",
     activebackground="#272A37",
     cursor="hand2",
+    bg='#272A37'
 )
 home_button.place(x=860, y=45, width=105, height=50)
 
@@ -737,25 +725,208 @@ def clear_signin():
 
 
 def signin():
-    login_user = dict()
-
+    global AUTHENTICATE
     if Login_emailName_entry.get() == "" or Login_passwordName_entry.get() == "":
         messagebox.showerror("Error", "All Fields are Required")
     else:
-        login_user['email'] = Login_emailName_entry.get()
-        login_user['password'] = Login_passwordName_entry.get()
+        userEmail = Login_emailName_entry.get()
+        userPassword = Login_passwordName_entry.get()
 
-        clear_signin()
+        if authentication.sign_in(userEmail, userPassword):
+            AUTHENTICATE = True
+            clear_signin()
+            show_frame(load_pdf)
+        else:
+            messagebox.showerror("Alert", "Email or Password is wrong.")
 
-        print(login_user.values())
 
-def PDFAirSignWithoutVerify():
-    root = Tk()
-    root.configure(bg='black')
-    root.title('Air Signing')
-    root.geometry("630x700+700+100")
-    app = PDFAirSignerApp(root)
-    root.mainloop()
+# ====================================================================================
+# =========================== LOAD PDF PAGE START HERE ===============================
+# ====================================================================================
+
+# Load PDF Text Variables
+pdfID = StringVar()
+
+load_pdf.configure(bg="#525561")
+
+# ================Background Image ====================
+pdf_backgroundImage = PhotoImage(file="assets\\image_1.png")
+bg_image_pdf = Label(
+    load_pdf,
+    image=pdf_backgroundImage,
+    bg="#525561"
+)
+bg_image_pdf.place(x=120, y=28)
+
+# ================ Header Text Left ====================
+pdf_headerText_image_left = PhotoImage(file="assets\\headerText_image.png")
+pdf_headerText_image_label1 = Label(
+    bg_image_pdf,
+    image=pdf_headerText_image_left,
+    bg="#272A37"
+)
+pdf_headerText_image_label1.place(x=60, y=45)
+
+pdf_headerText1 = Label(
+    bg_image_pdf,
+    text="Air Signature",
+    fg="#FFFFFF",
+    font=("yu gothic ui bold", 20 * -1),
+    bg="#272A37"
+)
+pdf_headerText1.place(x=110, y=45)
+
+# ================ LOAD PDF HEADER ====================
+pdf_header = Label(
+    bg_image_pdf,
+    text="Load the PDF to Verify",
+    fg="#FFFFFF",
+    font=("yu gothic ui Bold", 28 * -1),
+    bg="#272A37"
+)
+pdf_header.place(x=370, y=200)
+
+# ================ PDF ID Section ====================
+pdf_id_image = PhotoImage(file="assets\\email.png")
+pdf_id_image_Label = Label(
+    bg_image_pdf,
+    image=pdf_id_image,
+    bg="#272A37"
+)
+pdf_id_image_Label.place(x=320, y=280)
+
+pdf_id_text = Label(
+    pdf_id_image_Label,
+    text="PDF ID",
+    fg="#FFFFFF",
+    font=("yu gothic ui SemiBold", 13 * -1),
+    bg="#3D404B"
+)
+pdf_id_text.place(x=8, y=0)
+
+pdf_id_entry = Entry(
+    pdf_id_image_Label,
+    bd=0,
+    bg="#3D404B",
+    highlightthickness=0,
+    font=("yu gothic ui SemiBold", 16 * -1),
+    textvariable=pdfID
+)
+pdf_id_entry.place(x=8, y=17, width=354, height=27)
+
+# =============== Submit Button ====================
+pdf_id_image_1 = PhotoImage(file="assets\\button_1.png")
+pdf_button_1 = Button(
+    bg_image_pdf,
+    image=pdf_id_image_1,
+    borderwidth=0,
+    highlightthickness=0,
+    command=lambda: sign_with_verify(),
+    relief="flat",
+    activebackground="#272A37",
+    cursor="hand2",
+)
+pdf_button_1.place(x=370, y=375, width=333, height=65)
+
+# ================ Home Button ====================
+home_image_right = PhotoImage(file="assets\\home.png")
+home_button = Button(
+    bg_image_pdf,
+    image=home_image_right,
+    borderwidth=0,
+    highlightthickness=0,
+    command=lambda: show_frame(index_page),
+    relief="flat",
+    activebackground="#272A37",
+    cursor="hand2",
+    bg='#272A37'
+)
+home_button.place(x=860, y=45, width=105, height=50)
+
+# ================ Logout Button ====================
+logout_image_right = PhotoImage(file="assets\\exit.png")
+logout_button = Button(
+    bg_image_pdf,
+    image=logout_image_right,
+    borderwidth=0,
+    highlightthickness=0,
+    command=lambda: logout_event(),
+    relief="flat",
+    activebackground="#272A37",
+    cursor="hand2",
+    bg='#272A37'
+)
+logout_button.place(x=860, y=100, width=105, height=50)
+
+# ================ Update Button ====================
+update_image_right = PhotoImage(file="assets\\edit.png")
+update_button = Button(
+    bg_image_pdf,
+    image=update_image_right,
+    borderwidth=0,
+    highlightthickness=0,
+    # command=lambda: ,
+    relief="flat",
+    activebackground="#272A37",
+    cursor="hand2",
+    bg='#272A37'
+)
+update_button.place(x=860, y=155, width=105, height=50)
+
+# ================ Header Text Down ====================
+pdf_headerText_image_down = PhotoImage(file="assets\\headerText_image.png")
+pdf_headerText_image_label3 = Label(
+    bg_image_pdf,
+    image=pdf_headerText_image_down,
+    bg="#272A37"
+)
+pdf_headerText_image_label3.place(x=650, y=530)
+
+pdf_headerText3 = Label(
+    bg_image_pdf,
+    text="Powered by Signature Group",
+    fg="#FFFFFF",
+    font=("yu gothic ui bold", 20 * -1),
+    bg="#272A37"
+)
+pdf_headerText3.place(x=700, y=530)
+
+def sign_without_verify():
+    signature.withdraw()
+    subprocess.run(['python', 'AirSigning//PDFAirSignerApp.py'])
+    signature.deiconify()
+
+def sign_with_verify():
+    if pdf_id_entry.get() == "":
+        messagebox.showerror("Error", "All Fields are Required")
+    else:
+        pdf_id = pdf_id_entry.get()
+        pdfID.set("")
+
+        if pdfApi.getPDF(pdf_id, authentication.getUserName(), authentication.gettoken()):
+            signature.withdraw()
+            subprocess.run(['python', 'verification//PDFAirSignerApp.py', pdfApi.getDownloadedPdf(), authentication.getUserName()])
+            signature.deiconify()
+        else:
+            messagebox.showerror("Id missed match", "No Pdf Found.")
+
+
+def clickVerification():
+    global authentication, AUTHENTICATE
+
+    if authentication is None:
+        authentication = AuthAPI()
+    if AUTHENTICATE:
+        show_frame(load_pdf)
+    else:
+        show_frame(sign_in)
+
+def logout_event():
+    global AUTHENTICATE
+    authentication.logout()
+    AUTHENTICATE = False
+    show_frame(index_page)
+
 
 signature.resizable(False, False)
 signature.mainloop()
