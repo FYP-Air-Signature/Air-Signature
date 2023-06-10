@@ -5,6 +5,10 @@ from tkinter import messagebox
 from App.verification.Authentication import AuthAPI
 from App.verification.PdfAPI import PdfAPI
 
+authentication = None
+pdfApi = PdfAPI()
+AUTHENTICATE = False
+
 signature = Tk()
 signature.rowconfigure(0, weight=1)
 signature.columnconfigure(0, weight=1)
@@ -21,10 +25,6 @@ sign_in = Frame(signature)
 sign_up = Frame(signature)
 index_page = Frame(signature)
 load_pdf = Frame(signature)
-
-authentication = None
-pdfApi = PdfAPI()
-AUTHENTICATE = False
 
 for frame in (index_page, sign_in, sign_up, load_pdf):
     frame.grid(row=0, column=0, sticky='nsew')
@@ -119,7 +119,7 @@ signButton = Button(
     cursor="hand2",
     activebackground="#272A37",
     activeforeground="#ffffff",
-    command=lambda :sign_without_verify()
+    command=lambda: sign_without_verify()
 )
 signButton.place(x=75, y=140, width=350, height=350)
 
@@ -891,10 +891,12 @@ pdf_headerText3 = Label(
 )
 pdf_headerText3.place(x=700, y=530)
 
+
 def sign_without_verify():
     signature.withdraw()
     subprocess.run(['python', 'AirSigning//PDFAirSignerApp.py'])
     signature.deiconify()
+
 
 def sign_with_verify():
     if pdf_id_entry.get() == "":
@@ -905,7 +907,8 @@ def sign_with_verify():
 
         if pdfApi.getPDF(pdf_id, authentication.getUserName(), authentication.gettoken()):
             signature.withdraw()
-            subprocess.run(['python', 'verification//PDFAirSignerApp.py', pdfApi.getDownloadedPdf(), authentication.getUserName()])
+            subprocess.run(
+                ['python', 'verification//PDFAirSignerApp.py', pdfApi.getDownloadedPdf(), authentication.getUserName()])
             signature.deiconify()
         else:
             messagebox.showerror("Id missed match", "No Pdf Found.")
@@ -921,12 +924,23 @@ def clickVerification():
     else:
         show_frame(sign_in)
 
+
 def logout_event():
     global AUTHENTICATE
-    authentication.logout()
-    AUTHENTICATE = False
+    if AUTHENTICATE:
+        authentication.logout()
     show_frame(index_page)
+    AUTHENTICATE = False
 
+
+def close_app():
+    global AUTHENTICATE
+    if AUTHENTICATE:
+        authentication.logout()
+    signature.destroy()
+
+
+signature.protocol("WM_DELETE_WINDOW", close_app)
 
 signature.resizable(False, False)
 signature.mainloop()

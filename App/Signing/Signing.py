@@ -6,7 +6,7 @@ from PIL import ImageFont, ImageDraw, Image
 from App.Signing.HandTracker import htm
 
 
-class AirSigning():
+class AirSigning:
 
     def __init__(self, defaultCam=0):
         ####################################
@@ -26,8 +26,10 @@ class AirSigning():
     def drawSign(self, filePath):
         # Connect to webcam
         cap = cv2.VideoCapture(self.primaryCam)
-        cap.set(3, self.camWidth)
-        cap.set(4, self.camHeight)
+        # cap.set(3, self.camWidth)
+        # cap.set(4, self.camHeight)
+        self.camWidth = int(cap.get(3))
+        self.camHeight = int(cap.get(4))
         # Loop through every frame until we close our webcam
 
         # Sign Area rectangle
@@ -97,7 +99,8 @@ class AirSigning():
             color = (0, 0, 0)  # White color
 
             # Put the text on the image
-            cv2.putText(frame, "After draw press 'Q' to continue - >", position, font, font_scale, color, 2, cv2.LINE_AA)
+            cv2.putText(frame, "After draw press 'Q' to continue - >", position, font, font_scale, color, 2,
+                        cv2.LINE_AA)
 
             # Show image
             cv2.imshow('Webcam', frame)

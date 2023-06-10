@@ -7,6 +7,8 @@ import io
 
 # Load environment variables from .env file
 env_vars = dotenv_values()
+
+
 class AuthAPI:
     def __init__(self):
         self.base_url = env_vars["AUTH_BASE_URL"]
@@ -17,7 +19,7 @@ class AuthAPI:
     def sign_up(self, username, email, password, signatures):
         url = f"{self.base_url}/signup"
         data = {
-            "userDetails": {"username" : username, "email": email,"password": password},
+            "userDetails": {"username": username, "email": email, "password": password},
             "files": signatures
         }
         response = requests.post(url, data=data)
@@ -78,22 +80,19 @@ class AuthAPI:
         else:
             print("You are not signed in.")
 
-
     def gettoken(self):
         return self.token
 
     def getUserName(self):
         return self.userName
+
     def clearUserDir(self):
-        deleteDirectory("application_data//" + self.userName)
-
-
+        deleteDirectory("verification//application_data//" + self.userName)
 
 
 if __name__ == "__main__":
     # Example usage
     api = AuthAPI()  # Replace with the actual API base URL
-    #
 
     # Sign in
     api.sign_in("victorvasanth18@gmail.com", "12345678")

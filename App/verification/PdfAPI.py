@@ -4,6 +4,8 @@ from dotenv import dotenv_values
 
 # Load environment variables from .env file
 env_vars = dotenv_values()
+
+
 class PdfAPI:
     def __init__(self):
         self.base_url = env_vars["BASE_URL"]
@@ -12,7 +14,7 @@ class PdfAPI:
 
     def getPDF(self, pdfId, userName, token):
         url = f"{self.base_url}/pdf/" + pdfId
-        response = requests.get(url, headers={"Cookie" : token})
+        response = requests.get(url, headers={"Cookie": token})
 
         if response.status_code == 200:
             pdfContent = response.content
@@ -29,7 +31,6 @@ class PdfAPI:
         else:
             print("There is no pdf with id : " + pdfId)
             return False
-
 
     def getDownloadedPdf(self):
         return self.downloadedPdf

@@ -6,7 +6,11 @@ from App.Signing import Signing
 from PyPDF2 import PdfReader
 import subprocess
 from tkinter import *
+from tkinter import ttk
 from PIL import Image, ImageTk
+from tkinter import messagebox
+from App.verification.Verification import Verification
+
 
 class PDFAirSignerApp(object):
     def __init__(self, master, **kwargs):
@@ -53,9 +57,10 @@ class PDFAirSignerApp(object):
         self.sign_button.pack(side=TOP, anchor='center')
 
         # Add a button to select an image file
-        self.img_button = Button(self.master, text="Select Signature", command=self.load_img, width=20, cursor="hand2",
-                                 font='arial 20', bd=4, state=DISABLED)
+        self.img_button = Button(self.master, text="Select Signature", command=self.load_img,
+                                 width=20, cursor="hand2", font='arial 20', bd=4, state=DISABLED)
         self.img_button.pack(side=TOP, anchor='center')
+
         self.filePath = None
         self.userName = sys.argv[2]
 
@@ -129,9 +134,8 @@ class PDFAirSignerApp(object):
         airSignComponent = Signing.AirSigning()
         img_path = airSignComponent.drawSign(f"verification//application_data//{self.userName}//new_sign")
 
-        # Todo Verification...
-
         if img_path:
+            self.verify()
             # Open the image file and display it on the PDF canvas
             image = Image.open(img_path).convert('RGBA')
             image.thumbnail((150, 40), Image.ANTIALIAS)
@@ -156,7 +160,7 @@ class PDFAirSignerApp(object):
 
         self.canvas.update()
 
-        #print(event.x, event.y, "canvas", x_canvas, y_canvas, "pdf", x_pdf, y_pdf)
+        # print(event.x, event.y, "canvas", x_canvas, y_canvas, "pdf", x_pdf, y_pdf)
 
     def sign_pdf(self):
         # List of Python scripts to run
@@ -191,6 +195,100 @@ class PDFAirSignerApp(object):
         self.master.geometry(self._geom)
         self._geom = geom
 
+    def verify(self):
+        win = Toplevel(self.master, bg='#272A37')
+        window_width = 350
+        window_height = 350
+        screen_width = win.winfo_screenwidth()
+        screen_height = win.winfo_screenheight()
+        position_top = int(screen_height / 4 - window_height / 4)
+        position_right = int(screen_width / 2 - window_width / 2)
+        win.geometry(f'{window_width}x{window_height}+{position_right}+{position_top}')
+        win.protocol("WM_DELETE_WINDOW", self.disable_event)
+
+        win.title('Verify Signature')
+        # win.iconbitmap('images\\aa.ico')
+
+        win.grab_set()
+
+        # sign = PhotoImage(file=f"verification//application_data//{self.userName}//new_sign//tempSign.png")
+        # sign_image_label = Label(
+        #     win,
+        #     image=sign.zoom(15).subsample(25),
+        #     bg="#272A37"
+        # )
+        # sign_image_label.place(x=120, y=50)
+
+        message_label = Label(
+            win,
+            text="Verifying your Signature",
+            fg="#FFFFFF",
+            font=("yu gothic ui Bold", 15 * -1),
+            bg="#272A37"
+        )
+
+        message_verified = Label(
+            win,
+            text="You are Successfully Verified",
+            fg="#FFFFFF",
+            font=("yu gothic ui Bold", 15 * -1),
+            bg="#272A37"
+        )
+
+        message_label.place(x=85, y=120)
+
+        verifying = ttk.Progressbar(win, orient=HORIZONTAL, length=300, mode='determinate')
+        verifying.place(x=25, y=160, height=25, width=300)
+
+        verifying.start(10)
+
+        verifier = Verification()
+
+        results, verified = verifier.verify_signature(self.userName)
+
+        print(results)
+
+        verifying.stop()
+        verifying['value'] = 100
+
+        win.resizable(False, False)
+
+        if verified:
+            message_verified.place(x=85, y=190)
+            self.tksleep(2)
+
+            win.grab_release()
+            win.destroy()
+
+            return True
+        else:
+            message_verified.config(text="Not Matched!", fg='red')
+            message_verified.place(x=125, y=190)
+            self.tksleep(2)
+
+            res = messagebox.askyesno('Mismatched', 'Would You like to Re-Try Again?')
+            print(res)
+
+            win.destroy()
+            win.grab_release()
+
+            if not res:
+                self.close_pdf()
+            else:
+                self.load_img()
+
+        return False
+
+    def disable_event(self):
+        pass
+
+    def tksleep(self, t):
+        """emulating time.sleep(seconds)"""
+        ms = int(t * 1000)
+        var = IntVar(self.master)
+        self.master.after(ms, lambda: var.set(1))
+        self.master.wait_variable(var)
+
 
 if __name__ == "__main__":
     root = Tk()
@@ -200,4 +298,3 @@ if __name__ == "__main__":
     app = PDFAirSignerApp(root)
     app.load_pdf(sys.argv[1])
     root.mainloop()
-
