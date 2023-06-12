@@ -1,10 +1,10 @@
 import math
 import os
 from tkinter import filedialog
-
+from tkinter.filedialog import asksaveasfile
 from App.AirSigning.ShowPdf import ShowPdf
 from App.Signing import Signing
-from PyPDF2 import PdfReader
+from PyPDF2 import PdfReader, PdfWriter
 import subprocess
 import shutil
 import tempfile
@@ -61,7 +61,7 @@ class PDFAirSignerApp(object):
         self.sign_button.pack(side=TOP, anchor='center')
 
         # Add a button to select an image file
-        self.img_button = Button(self.master, text="Select Signature", command=self.load_img, width=20, cursor="hand2",
+        self.img_button = Button(self.master, text="Draw Signature", command=self.load_img, width=20, cursor="hand2",
                                  font='arial 20', bd=4, state=DISABLED)
         self.img_button.pack(side=TOP, anchor='center')
 
@@ -88,6 +88,7 @@ class PDFAirSignerApp(object):
                     break
                 except OSError:
                     pass
+
             file_path = newFilePath
             # Load PDF page and get its dimensions
             doc = PdfReader(file_path)
@@ -139,6 +140,7 @@ class PDFAirSignerApp(object):
         return self.current_page
 
     def close_pdf(self):
+        self.savePDFFile()
         self.v1.frame.destroy()
         self.v1.img_object_li.clear()
         self.canvas.destroy()
@@ -212,6 +214,27 @@ class PDFAirSignerApp(object):
         geom = self.master.winfo_geometry()
         self.master.geometry(self._geom)
         self._geom = geom
+
+    def savePDFFile(self, ):
+        Files = [('PDF Document', '*.pdf')]
+        file = asksaveasfile(filetypes=Files)
+        if file:
+            pdfFileObj = "{}_signed{}".format(*os.path.splitext(self.fileName))
+
+            # creating a pdf Reader object
+            pdfReader = PdfReader(pdfFileObj)
+
+            # creating a pdf writer object for new pdf
+            pdfWriter = PdfWriter()
+
+            # rotating each page
+            for page in range(pdfReader.numPages):
+
+                # adding rotated page object to pdf writer
+                pdfWriter.addPage(pdfReader.getPage(page))
+
+                # writing to new file
+                pdfWriter.write(f"{file.name}.pdf")
 
 
 if __name__ == "__main__":
