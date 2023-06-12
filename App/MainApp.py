@@ -594,7 +594,32 @@ update_user_header = Label(
     font=("yu gothic ui Bold", 28 * -1),
     bg="#272A37"
 )
-update_user_header.place(x=80, y=121)
+update_user_header.place(x=75, y=121)
+
+# ================ NOT NOW TEXT ====================
+update_text = Label(
+    update_bg_image,
+    text="Not Now?",
+    fg="#FFFFFF",
+    font=("yu gothic ui Regular", 15 * -1),
+    bg="#272A37"
+)
+update_text.place(x=80, y=187)
+
+# ================ GO TO LOGIN ====================
+update_back = Button(
+    update_bg_image,
+    text="Go Back",
+    fg="#206DB4",
+    font=("yu gothic ui Bold", 15 * -1),
+    bg="#272A37",
+    bd=0,
+    cursor="hand2",
+    activebackground="#272A37",
+    activeforeground="#ffffff",
+    command=lambda: show_frame(load_pdf)
+)
+update_back.place(x=230, y=185, width=60, height=35)
 
 # ================ First Name Section ====================
 update_firstName_image = PhotoImage(file="assets\\input_img.png")
@@ -603,7 +628,7 @@ update_firstName_image_Label = Label(
     image=update_firstName_image,
     bg="#272A37"
 )
-update_firstName_image_Label.place(x=80, y=187)
+update_firstName_image_Label.place(x=80, y=242)
 
 update_firstName_text = Label(
     update_firstName_image_Label,
@@ -639,7 +664,7 @@ update_lastName_image_Label = Label(
     image=update_lastName_image,
     bg="#272A37"
 )
-update_lastName_image_Label.place(x=293, y=187)
+update_lastName_image_Label.place(x=293, y=242)
 
 update_lastName_text = Label(
     update_lastName_image_Label,
@@ -675,7 +700,7 @@ update_passwordName_image_Label = Label(
     image=update_passwordName_image,
     bg="#272A37"
 )
-update_passwordName_image_Label.place(x=80, y=250)
+update_passwordName_image_Label.place(x=80, y=311)
 
 update_passwordName_text = Label(
     update_passwordName_image_Label,
@@ -709,7 +734,7 @@ update_password_check_btn = Checkbutton(update_bg_image, text='show password', f
                                         selectcolor='#272A37', activebackground='#272A37', bd=0,
                                         font=("yu gothic ui", 11, 'bold'),
                                         command=lambda: show_password(update_passwordName_entry))
-update_password_check_btn.place(x=120, y=315)
+update_password_check_btn.place(x=120, y=370)
 
 # ================ Confirm Password Name Section ====================
 update_confirm_passwordName_image = PhotoImage(file="assets\\input_img.png")
@@ -718,7 +743,7 @@ update_confirm_passwordName_image_Label = Label(
     image=update_confirm_passwordName_image,
     bg="#272A37"
 )
-update_confirm_passwordName_image_Label.place(x=293, y=250)
+update_confirm_passwordName_image_Label.place(x=293, y=311)
 
 update_confirm_passwordName_text = Label(
     update_confirm_passwordName_image_Label,
@@ -752,7 +777,7 @@ update_confirm_check_btn = Checkbutton(update_bg_image, text='show password', fg
                                        selectcolor='#272A37', activebackground='#272A37', bd=0,
                                        font=("yu gothic ui", 11, 'bold'),
                                        command=lambda: show_password(update_confirm_passwordName_entry))
-update_confirm_check_btn.place(x=330, y=315)
+update_confirm_check_btn.place(x=330, y=370)
 
 # =============== Add Sign Button ====================
 update_add_sign_button = Button(
@@ -768,7 +793,7 @@ update_add_sign_button = Button(
     command=lambda: add_signature()
 )
 
-update_add_sign_button.place(x=144, y=350, width=300, height=45)
+update_add_sign_button.place(x=144, y=405, width=300, height=45)
 
 # =============== Submit Button ====================
 update_submit_buttonImage = PhotoImage(
@@ -783,7 +808,7 @@ update_submit_button = Button(
     cursor="hand2",
     command=lambda: update()
 )
-update_submit_button.place(x=130, y=400, width=333, height=65)
+update_submit_button.place(x=130, y=460, width=333, height=65)
 
 # ================ Header Text Down ====================
 update_headerText_image_down = PhotoImage(file="assets\\headerText_image.png")
