@@ -3,13 +3,14 @@ import os
 import sys
 from App.AirSigning.ShowPdf import ShowPdf
 from App.Signing import Signing
-from PyPDF2 import PdfReader
+from PyPDF2 import PdfReader, PdfWriter
 import subprocess
 from tkinter import *
 from tkinter import ttk
 from PIL import Image, ImageTk
 from tkinter import messagebox
 from App.verification.Verification import Verification
+from tkinter.filedialog import asksaveasfile
 
 
 class PDFAirSignerApp(object):
@@ -46,6 +47,8 @@ class PDFAirSignerApp(object):
         self.v1 = ShowPdf()
         self.v2 = None
 
+        self.airSignComponent = Signing.AirSigning()
+
         # Create a button to close the PDF file
         self.close_button = Button(self.master, text='Save & Close PDF', command=self.close_pdf, width=20,
                                    font='arial 20', bd=4, cursor="hand2", state=DISABLED)
@@ -57,7 +60,7 @@ class PDFAirSignerApp(object):
         self.sign_button.pack(side=TOP, anchor='center')
 
         # Add a button to select an image file
-        self.img_button = Button(self.master, text="Select Signature", command=self.load_img,
+        self.img_button = Button(self.master, text="Draw Signature", command=self.load_img,
                                  width=20, cursor="hand2", font='arial 20', bd=4, state=DISABLED)
         self.img_button.pack(side=TOP, anchor='center')
 
@@ -119,6 +122,7 @@ class PDFAirSignerApp(object):
         return self.current_page
 
     def close_pdf(self):
+        self.savePDFFile()
         self.v1.frame.destroy()
         self.v1.img_object_li.clear()
         self.canvas.destroy()
@@ -131,11 +135,11 @@ class PDFAirSignerApp(object):
         exit()
 
     def load_img(self):
-        airSignComponent = Signing.AirSigning()
-        img_path = airSignComponent.drawSign(f"verification//application_data//{self.userName}//new_sign")
+        self.img_button.config(state=DISABLED)
+        img_path = self.airSignComponent.drawSign(f"verification//application_data//{self.userName}//new_sign")
 
         if img_path:
-            self.verify()
+            self.verify(self.airSignComponent.getRetrySign())
             # Open the image file and display it on the PDF canvas
             image = Image.open(img_path).convert('RGBA')
             image.thumbnail((150, 40), Image.ANTIALIAS)
@@ -195,7 +199,7 @@ class PDFAirSignerApp(object):
         self.master.geometry(self._geom)
         self._geom = geom
 
-    def verify(self):
+    def verify(self, count):
         win = Toplevel(self.master, bg='#272A37')
         window_width = 350
         window_height = 350
@@ -210,14 +214,6 @@ class PDFAirSignerApp(object):
         # win.iconbitmap('images\\aa.ico')
 
         win.grab_set()
-
-        # sign = PhotoImage(file=f"verification//application_data//{self.userName}//new_sign//tempSign.png")
-        # sign_image_label = Label(
-        #     win,
-        #     image=sign.zoom(15).subsample(25),
-        #     bg="#272A37"
-        # )
-        # sign_image_label.place(x=120, y=50)
 
         message_label = Label(
             win,
@@ -255,7 +251,7 @@ class PDFAirSignerApp(object):
 
         if verified:
             message_verified.place(x=85, y=190)
-            self.tksleep(2)
+            self.tksleep(3)
 
             win.grab_release()
             win.destroy()
@@ -266,16 +262,21 @@ class PDFAirSignerApp(object):
             message_verified.place(x=125, y=190)
             self.tksleep(2)
 
-            res = messagebox.askyesno('Mismatched', 'Would You like to Re-Try Again?')
-            print(res)
-
             win.destroy()
             win.grab_release()
+            print(count)
+            if count <= 2:
+                res = messagebox.askyesno('Mismatched', 'Would You like to Re-Try Again?')
+                print(res)
 
-            if not res:
-                self.close_pdf()
+                if not res:
+                    self.close_pdf()
+                else:
+                    self.load_img()
+
             else:
-                self.load_img()
+                messagebox.showwarning('Finished', 'Your Maximum Chance was Completed.')
+                self.close_pdf()
 
         return False
 
@@ -288,6 +289,26 @@ class PDFAirSignerApp(object):
         var = IntVar(self.master)
         self.master.after(ms, lambda: var.set(1))
         self.master.wait_variable(var)
+
+    def savePDFFile(self):
+        Files = [('PDF Document', '*.pdf')]
+        file = asksaveasfile(filetypes=Files)
+        if file:
+            pdfFileObj = "{}_signed{}".format(*os.path.splitext(self.fileName))
+
+            # creating a pdf Reader object
+            pdfReader = PdfReader(pdfFileObj)
+
+            # creating a pdf writer object for new pdf
+            pdfWriter = PdfWriter()
+
+            # rotating each page
+            for page in range(pdfReader.numPages):
+                # adding rotated page object to pdf writer
+                pdfWriter.addPage(pdfReader.getPage(page))
+
+                # writing to new file
+                pdfWriter.write(f"{file.name}.pdf")
 
 
 if __name__ == "__main__":

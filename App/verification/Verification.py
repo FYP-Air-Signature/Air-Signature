@@ -1,5 +1,5 @@
 from App.verification.ModelVerifier import ModelVerifier
-from App.verification.Preprocess import preprocess
+from App.verification.Preprocess import create_batch
 from App.verification.air_signature_model.TensorFlowModelLoader import TensorFlowModelLoader
 from App.verification.distances.L1Dist import L1Dist
 from dotenv import dotenv_values
@@ -22,7 +22,7 @@ class Verification:
 
             # TODO: here you can update preprocess function of model
             self.model_verifier = ModelVerifier(model, env_vars["DETECTION_THRESHOLD"],
-                                                env_vars["VERIFICATION_THRESHOLD"], preprocess=preprocess)
+                                                env_vars["VERIFICATION_THRESHOLD"], preprocess=create_batch)
 
-        results, verified = self.model_verifier.verify(user, new_img_name)
+        results, verified = self.model_verifier.verify(user)
         return results, verified

@@ -32,8 +32,9 @@ sign_in = Frame(signature)
 sign_up = Frame(signature)
 index_page = Frame(signature)
 load_pdf = Frame(signature)
+update_page = Frame(signature)
 
-for frame in (index_page, sign_in, sign_up, load_pdf):
+for frame in (index_page, sign_in, sign_up, load_pdf, update_page):
     frame.grid(row=0, column=0, sticky='nsew')
 
 
@@ -51,7 +52,7 @@ def show_password(entry):
 show_frame(index_page)
 
 # ====================================================================================
-# =========================== INDEX PAGE START HERE ================================
+# =========================== INDEX PAGE START HERE ==================================
 # ====================================================================================
 index_page.configure(bg="#525561")
 
@@ -534,6 +535,362 @@ def signup():
 
 
 # ====================================================================================
+# =========================== UPDATE PAGE START HERE =================================
+# ====================================================================================
+
+# Sign Up Text Variables
+Update_FirstName = StringVar()
+Update_LastName = StringVar()
+Update_Password = StringVar()
+Update_ConfirmPassword = StringVar()
+
+update_page.configure(bg="#525561")
+
+# ================Background Image ====================
+update_backgroundImage = PhotoImage(file="assets\\image_1.png")
+update_bg_image = Label(
+    update_page,
+    image=update_backgroundImage,
+    bg="#525561"
+)
+update_bg_image.place(x=120, y=28)
+
+# ================ Header Text Left ====================
+update_headerText_image_left = PhotoImage(file="assets\\headerText_image.png")
+update_headerText_image_label1 = Label(
+    update_bg_image,
+    image=update_headerText_image_left,
+    bg="#272A37"
+)
+update_headerText_image_label1.place(x=60, y=45)
+
+update_headerText1 = Label(
+    update_bg_image,
+    text="Air Signature",
+    fg="#FFFFFF",
+    font=("yu gothic ui bold", 20 * -1),
+    bg="#272A37"
+)
+update_headerText1.place(x=110, y=45)
+
+# ================ Header Text Right ====================
+update_headerText_image_right = PhotoImage(file="assets\\headerText_image.png")
+update_headerText_image_label2 = Label(
+    update_bg_image,
+    image=update_headerText_image_right,
+    bg="#272A37"
+)
+update_headerText_image_label2.place(x=640, y=45)
+
+update_headerText2 = Label(
+    update_bg_image,
+    anchor="nw",
+    text="Signatures",
+    fg="#FFFFFF",
+    font=("yu gothic ui Bold", 20 * -1),
+    bg="#272A37"
+)
+update_headerText2.place(x=690, y=45)
+
+# ============== SHOW ALL SIGNATURES ========================
+update_sign_image_right = PhotoImage(file="assets\\button_1.png").zoom(20).subsample(30)
+for i in range(5):
+    update_sign_image_label = Label(
+        update_bg_image,
+        image=update_sign_image_right,
+        bg="red"
+    )
+    update_sign_image_label.place(x=640, y=(121 + i * 70))
+
+# ================ UPDATE USER HEADER ====================
+update_user_header = Label(
+    update_bg_image,
+    text="Update User",
+    fg="#FFFFFF",
+    font=("yu gothic ui Bold", 28 * -1),
+    bg="#272A37"
+)
+update_user_header.place(x=75, y=121)
+
+# ================ NOT NOW TEXT ====================
+update_text = Label(
+    update_bg_image,
+    text="Not Now?",
+    fg="#FFFFFF",
+    font=("yu gothic ui Regular", 15 * -1),
+    bg="#272A37"
+)
+update_text.place(x=80, y=187)
+
+# ================ GO TO LOGIN ====================
+update_back = Button(
+    update_bg_image,
+    text="Go Back",
+    fg="#206DB4",
+    font=("yu gothic ui Bold", 15 * -1),
+    bg="#272A37",
+    bd=0,
+    cursor="hand2",
+    activebackground="#272A37",
+    activeforeground="#ffffff",
+    command=lambda: show_frame(load_pdf)
+)
+update_back.place(x=230, y=185, width=60, height=35)
+
+# ================ First Name Section ====================
+update_firstName_image = PhotoImage(file="assets\\input_img.png")
+update_firstName_image_Label = Label(
+    update_bg_image,
+    image=update_firstName_image,
+    bg="#272A37"
+)
+update_firstName_image_Label.place(x=80, y=242)
+
+update_firstName_text = Label(
+    update_firstName_image_Label,
+    text="First name",
+    fg="#FFFFFF",
+    font=("yu gothic ui SemiBold", 13 * -1),
+    bg="#3D404B"
+)
+update_firstName_text.place(x=25, y=0)
+
+update_firstName_icon = PhotoImage(file="assets\\name_icon.png")
+update_firstName_icon_Label = Label(
+    update_firstName_image_Label,
+    image=update_firstName_icon,
+    bg="#3D404B"
+)
+update_firstName_icon_Label.place(x=159, y=15)
+
+update_firstName_entry = Entry(
+    update_firstName_image_Label,
+    bd=0,
+    bg="#3D404B",
+    highlightthickness=0,
+    font=("yu gothic ui SemiBold", 16 * -1),
+    textvariable=Update_FirstName
+)
+update_firstName_entry.place(x=8, y=17, width=140, height=27)
+
+# ================ Last Name Section ====================
+update_lastName_image = PhotoImage(file="assets\\input_img.png")
+update_lastName_image_Label = Label(
+    update_bg_image,
+    image=update_lastName_image,
+    bg="#272A37"
+)
+update_lastName_image_Label.place(x=293, y=242)
+
+update_lastName_text = Label(
+    update_lastName_image_Label,
+    text="Last name",
+    fg="#FFFFFF",
+    font=("yu gothic ui SemiBold", 13 * -1),
+    bg="#3D404B"
+)
+update_lastName_text.place(x=25, y=0)
+
+update_lastName_icon = PhotoImage(file="assets\\name_icon.png")
+update_lastName_icon_Label = Label(
+    update_lastName_image_Label,
+    image=update_lastName_icon,
+    bg="#3D404B"
+)
+update_lastName_icon_Label.place(x=159, y=15)
+
+update_lastName_entry = Entry(
+    update_lastName_image_Label,
+    bd=0,
+    bg="#3D404B",
+    highlightthickness=0,
+    font=("yu gothic ui SemiBold", 16 * -1),
+    textvariable=Update_LastName
+)
+update_lastName_entry.place(x=8, y=17, width=140, height=27)
+
+# ================ Password Name Section ====================
+update_passwordName_image = PhotoImage(file="assets\\input_img.png")
+update_passwordName_image_Label = Label(
+    update_bg_image,
+    image=update_passwordName_image,
+    bg="#272A37"
+)
+update_passwordName_image_Label.place(x=80, y=311)
+
+update_passwordName_text = Label(
+    update_passwordName_image_Label,
+    text="Password",
+    fg="#FFFFFF",
+    font=("yu gothic ui SemiBold", 13 * -1),
+    bg="#3D404B"
+)
+update_passwordName_text.place(x=25, y=0)
+
+update_passwordName_icon = PhotoImage(file="assets\\pass-icon.png")
+update_passwordName_icon_Label = Label(
+    update_passwordName_image_Label,
+    image=update_passwordName_icon,
+    bg="#3D404B"
+)
+update_passwordName_icon_Label.place(x=159, y=15)
+
+update_passwordName_entry = Entry(
+    update_passwordName_image_Label,
+    bd=0,
+    bg="#3D404B",
+    highlightthickness=0,
+    font=("yu gothic ui SemiBold", 16 * -1),
+    show="*",
+    textvariable=Update_Password
+)
+update_passwordName_entry.place(x=8, y=17, width=140, height=27)
+
+update_password_check_btn = Checkbutton(update_bg_image, text='show password', fg="#FFFFFF", bg='#272A37',
+                                        selectcolor='#272A37', activebackground='#272A37', bd=0,
+                                        font=("yu gothic ui", 11, 'bold'),
+                                        command=lambda: show_password(update_passwordName_entry))
+update_password_check_btn.place(x=120, y=370)
+
+# ================ Confirm Password Name Section ====================
+update_confirm_passwordName_image = PhotoImage(file="assets\\input_img.png")
+update_confirm_passwordName_image_Label = Label(
+    update_bg_image,
+    image=update_confirm_passwordName_image,
+    bg="#272A37"
+)
+update_confirm_passwordName_image_Label.place(x=293, y=311)
+
+update_confirm_passwordName_text = Label(
+    update_confirm_passwordName_image_Label,
+    text="Confirm Password",
+    fg="#FFFFFF",
+    font=("yu gothic ui SemiBold", 13 * -1),
+    bg="#3D404B"
+)
+update_confirm_passwordName_text.place(x=25, y=0)
+
+update_confirm_passwordName_icon = PhotoImage(file="assets\\pass-icon.png")
+update_confirm_passwordName_icon_Label = Label(
+    update_confirm_passwordName_image_Label,
+    image=update_confirm_passwordName_icon,
+    bg="#3D404B"
+)
+update_confirm_passwordName_icon_Label.place(x=159, y=15)
+
+update_confirm_passwordName_entry = Entry(
+    update_confirm_passwordName_image_Label,
+    bd=0,
+    bg="#3D404B",
+    highlightthickness=0,
+    font=("yu gothic ui SemiBold", 16 * -1),
+    show="*",
+    textvariable=Update_ConfirmPassword
+)
+update_confirm_passwordName_entry.place(x=8, y=17, width=140, height=27)
+
+update_confirm_check_btn = Checkbutton(update_bg_image, text='show password', fg="#FFFFFF", bg='#272A37',
+                                       selectcolor='#272A37', activebackground='#272A37', bd=0,
+                                       font=("yu gothic ui", 11, 'bold'),
+                                       command=lambda: show_password(update_confirm_passwordName_entry))
+update_confirm_check_btn.place(x=330, y=370)
+
+# =============== Add Sign Button ====================
+update_add_sign_button = Button(
+    update_bg_image,
+    text="Add Signatures",
+    fg="#206DB4",
+    font=("yu gothic ui Bold", 25 * -1),
+    bg="#2c3042",
+    bd=0,
+    cursor="hand2",
+    activebackground="#272A37",
+    activeforeground="#ffffff",
+    command=lambda: add_signature()
+)
+
+update_add_sign_button.place(x=144, y=405, width=300, height=45)
+
+# =============== Submit Button ====================
+update_submit_buttonImage = PhotoImage(
+    file="assets\\button_1.png")
+update_submit_button = Button(
+    update_bg_image,
+    image=update_submit_buttonImage,
+    borderwidth=0,
+    highlightthickness=0,
+    relief="flat",
+    activebackground="#272A37",
+    cursor="hand2",
+    command=lambda: update()
+)
+update_submit_button.place(x=130, y=460, width=333, height=65)
+
+# ================ Header Text Down ====================
+update_headerText_image_down = PhotoImage(file="assets\\headerText_image.png")
+update_headerText_image_label3 = Label(
+    update_bg_image,
+    image=update_headerText_image_down,
+    bg="#272A37"
+)
+update_headerText_image_label3.place(x=650, y=530)
+
+update_headerText3 = Label(
+    update_bg_image,
+    text="Powered by Signature Group",
+    fg="#FFFFFF",
+    font=("yu gothic ui bold", 20 * -1),
+    bg="#272A37"
+)
+update_headerText3.place(x=700, y=530)
+
+
+def add_signature():
+    win = Toplevel()
+    window_width = 350
+    window_height = 350
+    screen_width = win.winfo_screenwidth()
+    screen_height = win.winfo_screenheight()
+    position_top = int(screen_height / 4 - window_height / 4)
+    position_right = int(screen_width / 2 - window_width / 2)
+    win.geometry(f'{window_width}x{window_height}+{position_right}+{position_top}')
+
+    win.title('Draw Signatures')
+    # win.iconbitmap('images\\aa.ico')
+    win.configure(background='#272A37')
+    win.resizable(False, False)
+
+
+def clear_update():
+    Update_FirstName.set("")
+    Update_LastName.set("")
+    Update_Password.set("")
+    Update_ConfirmPassword.set("")
+
+    update_password_check_btn.deselect()
+    update_confirm_check_btn.deselect()
+
+
+def update():
+    user = dict()
+
+    if update_firstName_entry.get() == "" or update_lastName_entry.get() == "" or update_passwordName_entry.get() == "" or update_confirm_passwordName_entry.get() == "":
+        messagebox.showerror("Error", "All Fields are Required")
+    elif update_passwordName_entry.get() != update_confirm_passwordName_entry.get():
+        messagebox.showerror("Error", "Password and Confirmed Password Didn't Match")
+    else:
+        user['firstName'] = update_firstName_entry.get()
+        user['lastName'] = update_lastName_entry.get()
+        user['password'] = update_passwordName_entry.get()
+
+        clear_update()
+        logout_event()
+        show_frame(sign_in)
+
+    print(user.values())
+
+
+# ====================================================================================
 # =========================== LOGIN PAGE START HERE ==================================
 # ====================================================================================
 
@@ -881,7 +1238,7 @@ update_button = Button(
     image=update_image_right,
     borderwidth=0,
     highlightthickness=0,
-    # command=lambda: ,
+    command=lambda: show_frame(update_page),
     relief="flat",
     activebackground="#272A37",
     cursor="hand2",

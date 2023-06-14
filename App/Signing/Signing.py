@@ -21,6 +21,7 @@ class AirSigning:
 
         ########## CONSTANTS ###############
         self.cntSign = 1
+        self.retrySign = 0
         ####################################
 
     def drawSign(self, filePath, loop=False):
@@ -37,6 +38,8 @@ class AirSigning:
         rectEndWid, rectEndHei = int(self.camWidth * 0.9), int(self.camHeight * 0.4)
         xPrevious, yPrevious = 0, 0
         imgCanvas = np.zeros((self.camHeight, self.camWidth, 3), np.uint8)
+
+        k = 0
 
         while cap.isOpened():
             # Find  Hand
@@ -121,10 +124,19 @@ class AirSigning:
                     self.cntSign+=1
                     break
 
+            # # Checks whether q has been hit and stops the loop
+            # if cv2.waitKey(1) & 0xFF == ord('c'):
+            #     pngOfSign = self.removeBlackBackground(imgCanvas)
+            #     # save the image as a PNG file in the specified path
+            #     cv2.imwrite(f"sign_{k}.png", pngOfSign[rectIniHei:rectEndHei, rectIniWid:rectEndWid])
+            #     k += 1
+
         # Releases the webcam
         cap.release()
         # Closes the frame
         cv2.destroyAllWindows()
+
+        self.retrySign += 1
 
         return filePath + "\\tempSign.png"
 
@@ -145,6 +157,9 @@ class AirSigning:
         alpha = np.ones(imgCanvas.shape[:2], dtype=np.uint8) * 255
         alpha[mask_inv == 255] = 0
         return cv2.merge((img_masked, alpha))
+
+    def getRetrySign(self):
+        return self.retrySign
 
 
 if __name__ == "__main__":
