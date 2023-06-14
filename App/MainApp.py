@@ -1,9 +1,16 @@
+import os
 import subprocess
 from tkinter import *
 from tkinter import messagebox
 
+from App.Signing import Signing
 from App.verification.Authentication import AuthAPI
 from App.verification.PdfAPI import PdfAPI
+from App.verification.Preprocess import makeDirectoryDeleteAndCreate, deleteDirectory
+from dotenv import dotenv_values
+
+# Load environment variables from .env file
+env_vars = dotenv_values()
 
 authentication = None
 pdfApi = PdfAPI()
@@ -188,7 +195,7 @@ for i in range(5):
     sign_image_label = Label(
         bg_image,
         image=sign_image_right,
-        bg="red"
+        bg="#272A37"
     )
     sign_image_label.place(x=640, y=(121 + i * 70))
 
@@ -474,19 +481,14 @@ headerText3.place(x=700, y=530)
 
 
 def add_signature():
-    win = Toplevel()
-    window_width = 350
-    window_height = 350
-    screen_width = win.winfo_screenwidth()
-    screen_height = win.winfo_screenheight()
-    position_top = int(screen_height / 4 - window_height / 4)
-    position_right = int(screen_width / 2 - window_width / 2)
-    win.geometry(f'{window_width}x{window_height}+{position_right}+{position_top}')
-
-    win.title('Draw Signatures')
-    # win.iconbitmap('images\\aa.ico')
-    win.configure(background='#272A37')
-    win.resizable(False, False)
+    airSignComponent = Signing.AirSigning()
+    makeDirectoryDeleteAndCreate(env_vars["SIGN_UP_IMGS_PATH"])
+    for countSign in range(1,6):
+        airSignComponent.drawSign(env_vars["SIGN_UP_IMGS_PATH"], loop=True)
+        if countSign == 5:
+            messagebox.showinfo("Captured Successfully", "Finished.")
+        else:
+            messagebox.showinfo("Captured Successfully", f"{countSign} Added. Please add next air signature.")
 
 
 def clear_signup():
@@ -508,11 +510,25 @@ def signup():
     elif passwordName_entry.get() != confirm_passwordName_entry.get():
         messagebox.showerror("Error", "Password and Confirmed Password Didn't Match")
     else:
-        user['firstName'] = firstName_entry.get()
-        user['lastName'] = lastName_entry.get()
-        user['email'] = emailName_entry.get()
-        user['password'] = passwordName_entry.get()
+        try:
+            newSignImages = [env_vars["SIGN_UP_IMGS_PATH"] + f"//{imageName}"for imageName in os.listdir(env_vars["SIGN_UP_IMGS_PATH"])]
+            if len(newSignImages) != 5:
+                messagebox.showerror("Alert", "Please complete all procedures correctly.")
+                return
 
+            signUpResponse = authentication.sign_up(firstName_entry.get() + "_" + lastName_entry.get(),
+                                                    emailName_entry.get(), passwordName_entry.get(), newSignImages)
+            if signUpResponse:
+                messagebox.showinfo("Welcome", "Sign up successfully !...")
+            else:
+                messagebox.showerror("Alert", "Signup Failed")
+                return
+
+        except FileNotFoundError as e:
+            messagebox.showerror("Missing", "Please put your signatures")
+            return
+
+        deleteDirectory(env_vars["SIGN_UP_IMGS_PATH"])
         clear_signup()
         show_frame(sign_in)
 
@@ -937,6 +953,7 @@ def close_app():
     global AUTHENTICATE
     if AUTHENTICATE:
         authentication.logout()
+    deleteDirectory(env_vars["SIGN_UP_IMGS_PATH"])
     signature.destroy()
 
 
