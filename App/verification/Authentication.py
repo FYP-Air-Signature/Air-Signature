@@ -6,6 +6,7 @@ from dotenv import dotenv_values
 from PIL import Image
 import io
 import json
+
 # Load environment variables from .env file
 env_vars = dotenv_values()
 
@@ -24,8 +25,7 @@ class AuthAPI:
         json_data = json.dumps({"username": username, "email": email, "password": password})
         files = {}
         for idx, img in enumerate(signatures):
-            files[f"file{idx+1}"] = (f"tempSign{idx+1}.png", open(img, "rb"), "image/png")
-
+            files[f"file{idx + 1}"] = (f"tempSign{idx + 1}.png", open(img, "rb"), "image/png")
 
         # Create a multipart/form-data object
         multipart_data = MultipartEncoder(
@@ -36,10 +36,9 @@ class AuthAPI:
         )
 
         headers = {
-            "Content-Type":  multipart_data.content_type
+            "Content-Type": multipart_data.content_type
         }
 
-        print(multipart_data)
         response = requests.post(url, data=multipart_data.to_string(), headers=headers)
         if response.status_code == 200:
             print(response.json().get("message"))
@@ -97,6 +96,36 @@ class AuthAPI:
                 print("Logout failed.")
         else:
             print("You are not signed in.")
+
+    def update(self, password, newSignatures = None):
+        url = f"{self.base_url}/update"
+        # Convert dictionary to JSON
+        json_data = json.dumps({"username": self.userName, "email": self.userEmail, "password": password})
+        files = {"file1": None, "file2": None, "file3": None, "file4": None, "file5": None, }
+        if newSignatures is not None:
+            for idx, img in enumerate(newSignatures):
+                files[f"file{idx + 1}"] = (f"tempSign{idx + 1}.png", open(img, "rb"), "image/png")
+
+        # Create a multipart/form-data object
+        multipart_data = MultipartEncoder(
+            fields={
+                "userDetails": str(json_data),
+                **files
+            }
+        )
+
+        headers = {
+            "Content-Type": multipart_data.content_type,
+            "Cookie": self.token
+        }
+
+        response = requests.put(url, data=multipart_data.to_string(), headers=headers)
+        if response.status_code == 200:
+            print(response.json().get("message"))
+            return True
+        else:
+            print(response.json().get("message"))
+            return False
 
     def gettoken(self):
         return self.token

@@ -455,7 +455,6 @@ headerText3.place(x=700, y=530)
 
 
 def add_signature():
-    signs = dict()
     airSignComponent = Signing.AirSigning()
     makeDirectoryDeleteAndCreate(env_vars["SIGN_UP_IMGS_PATH"])
     for countSign in range(1, 6):
@@ -721,7 +720,7 @@ update_add_sign_button = Button(
     cursor="hand2",
     activebackground="#272A37",
     activeforeground="#ffffff",
-    command=lambda: add_signature()
+    command=lambda: add_update_signature()
 )
 
 update_add_sign_button.place(x=144, y=430, width=300, height=45)
@@ -761,19 +760,17 @@ update_headerText3.place(x=700, y=530)
 
 
 def add_update_signature():
-    win = Toplevel()
-    window_width = 350
-    window_height = 350
-    screen_width = win.winfo_screenwidth()
-    screen_height = win.winfo_screenheight()
-    position_top = int(screen_height / 4 - window_height / 4)
-    position_right = int(screen_width / 2 - window_width / 2)
-    win.geometry(f'{window_width}x{window_height}+{position_right}+{position_top}')
+    updateSignaturePaths = os.path.join("verification\\application_data", authentication.getUserName(), "update")
+    airSignComponent = Signing.AirSigning()
+    makeDirectoryDeleteAndCreate(updateSignaturePaths)
+    for countSign in range(1, 6):
+        airSignComponent.drawSign(updateSignaturePaths, loop=True)
+        if countSign == 5:
+            messagebox.showinfo("Captured Successfully", "Finished.")
+        else:
+            messagebox.showinfo("Captured Successfully", f"{countSign} Added. Please add next air signature.")
 
-    win.title('Draw Signatures')
-    # win.iconbitmap('images\\aa.ico')
-    win.configure(background='#272A37')
-    win.resizable(False, False)
+    show_signs(updateSignaturePaths)
 
 
 def clear_update():
@@ -785,20 +782,37 @@ def clear_update():
 
 
 def update():
-    user = dict()
-
     if update_passwordName_entry.get() == "" or update_confirm_passwordName_entry.get() == "":
         messagebox.showerror("Error", "All Fields are Required")
     elif update_passwordName_entry.get() != update_confirm_passwordName_entry.get():
         messagebox.showerror("Error", "Password and Confirmed Password Didn't Match")
     else:
-        user['password'] = update_passwordName_entry.get()
+        newPassword = update_confirm_passwordName_entry.get()
+        try:
 
+            updateSignaturePaths = os.path.join("verification\\application_data", authentication.getUserName(), "update")
+
+            newSignImages = [updateSignaturePaths + f"//{imageName}" for imageName in
+                             os.listdir(updateSignaturePaths)]
+            signUpResponse = authentication.update(newPassword, newSignatures = newSignImages)
+
+            if signUpResponse:
+                messagebox.showinfo("Success", "Update Completed !.")
+            else:
+                messagebox.showerror("Alert", "Update Failed")
+                return
+
+        except FileNotFoundError as e:
+            signUpResponse = authentication.update(newPassword)
+            if signUpResponse:
+                messagebox.showinfo("Success", "Update Completed !...")
+            else:
+                messagebox.showerror("Alert", "Update Failed")
+
+        deleteDirectory(updateSignaturePaths)
         clear_update()
         logout_event()
         show_frame(sign_in)
-
-    print(user.values())
 
 
 # ====================================================================================
