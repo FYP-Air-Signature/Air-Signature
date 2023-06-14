@@ -1,7 +1,7 @@
 import subprocess
 from tkinter import *
 from tkinter import messagebox
-
+from PIL import Image, ImageTk
 from App.verification.Authentication import AuthAPI
 from App.verification.PdfAPI import PdfAPI
 
@@ -184,14 +184,16 @@ headerText2 = Label(
 headerText2.place(x=690, y=45)
 
 # ============== SHOW ALL SIGNATURES ========================
-sign_image_right = PhotoImage(file="assets\\button_1.png").zoom(20).subsample(30)
+sign_image_right = Image.open("assets\\button_1.png")
+sign_image_right = sign_image_right.resize((320, 80))
+sign_image_right = ImageTk.PhotoImage(sign_image_right)
 for i in range(5):
     sign_image_label = Label(
         bg_image,
         image=sign_image_right,
         bg="red"
     )
-    sign_image_label.place(x=640, y=(121 + i * 70))
+    sign_image_label.place(x=640, y=(85 + i * 90), width=320, height=80)
 
 # ================ CREATE ACCOUNT HEADER ====================
 createAccount_header = Label(
