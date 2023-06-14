@@ -4,6 +4,7 @@ import cv2
 import itertools
 import tensorflow as tf
 from sklearn.utils import shuffle
+from PIL import Image
 import numpy as np
 from tensorflow.keras.preprocessing.image import img_to_array
 from dotenv import dotenv_values
@@ -46,7 +47,6 @@ def threshold_image(img_arr):
 
 
 def convertImage(path):
-    from PIL import Image
     im = Image.open(path)
 
     fill_color = (255, 255, 255)  # your new background color

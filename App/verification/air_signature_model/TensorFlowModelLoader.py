@@ -1,6 +1,6 @@
 import tensorflow as tf
 from App.verification.distances.L1Dist import L1Dist
-from App.verification.air_signature_model.v1.siamese_model import siamese_model
+from App.verification.air_signature_model.siamese_model import siamese_model
 from dotenv import dotenv_values
 
 # Load environment variables from .env file

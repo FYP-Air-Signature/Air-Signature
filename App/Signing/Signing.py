@@ -20,11 +20,11 @@ class AirSigning:
         ####################################
 
         ########## CONSTANTS ###############
-        MIN_DISTANCE_THRESHOLD = 1
+        self.cntSign = 1
         self.retrySign = 0
         ####################################
 
-    def drawSign(self, filePath):
+    def drawSign(self, filePath, loop=False):
         # Connect to webcam
         cap = cv2.VideoCapture(self.primaryCam)
         # cap.set(3, self.camWidth)
@@ -109,12 +109,21 @@ class AirSigning:
             cv2.imshow('Webcam', frame)
             # cv2.imshow('ImgCanvas', imgCanvas)
 
-            # Checks whether q has been hit and stops the loop
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                pngOfSign = self.removeBlackBackground(imgCanvas)
-                # save the image as a PNG file in the specified path
-                cv2.imwrite(filePath + "\\tempSign.png", pngOfSign[rectIniHei:rectEndHei, rectIniWid:rectEndWid])
-                break
+            if not loop:
+                # Checks whether q has been hit and stops the loop
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    pngOfSign = self.removeBlackBackground(imgCanvas)
+                    # save the image as a PNG file in the specified path
+                    cv2.imwrite(filePath + "\\tempSign.png", pngOfSign[rectIniHei:rectEndHei, rectIniWid:rectEndWid])
+                    break
+            else:
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    pngOfSign = self.removeBlackBackground(imgCanvas)
+                    # save the image as a PNG file in the specified path
+                    cv2.imwrite(filePath + f"\\tempSign{self.cntSign}.png",
+                                pngOfSign[rectIniHei:rectEndHei, rectIniWid:rectEndWid])
+                    self.cntSign += 1
+                    break
 
             # # Checks whether q has been hit and stops the loop
             # if cv2.waitKey(1) & 0xFF == ord('c'):

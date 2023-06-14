@@ -1,9 +1,18 @@
+import os
 import subprocess
 from tkinter import *
+from tkinter import ttk
 from tkinter import messagebox
 from PIL import Image, ImageTk
+from App.Signing import Signing
 from App.verification.Authentication import AuthAPI
 from App.verification.PdfAPI import PdfAPI
+from App.verification.Preprocess import makeDirectoryDeleteAndCreate, deleteDirectory
+from dotenv import dotenv_values
+from App.verification.Preprocess import convertImage
+
+# Load environment variables from .env file
+env_vars = dotenv_values()
 
 authentication = None
 pdfApi = PdfAPI()
@@ -163,37 +172,6 @@ headerText1 = Label(
     bg="#272A37"
 )
 headerText1.place(x=110, y=45)
-
-# ================ Header Text Right ====================
-headerText_image_right = PhotoImage(file="assets\\headerText_image.png")
-headerText_image_label2 = Label(
-    bg_image,
-    image=headerText_image_right,
-    bg="#272A37"
-)
-headerText_image_label2.place(x=640, y=45)
-
-headerText2 = Label(
-    bg_image,
-    anchor="nw",
-    text="Signatures",
-    fg="#FFFFFF",
-    font=("yu gothic ui Bold", 20 * -1),
-    bg="#272A37"
-)
-headerText2.place(x=690, y=45)
-
-# ============== SHOW ALL SIGNATURES ========================
-sign_image_right = Image.open("assets\\button_1.png")
-sign_image_right = sign_image_right.resize((320, 80))
-sign_image_right = ImageTk.PhotoImage(sign_image_right)
-for i in range(5):
-    sign_image_label = Label(
-        bg_image,
-        image=sign_image_right,
-        bg="red"
-    )
-    sign_image_label.place(x=640, y=(85 + i * 90), width=320, height=80)
 
 # ================ CREATE ACCOUNT HEADER ====================
 createAccount_header = Label(
@@ -477,19 +455,68 @@ headerText3.place(x=700, y=530)
 
 
 def add_signature():
-    win = Toplevel()
+    signs = dict()
+    airSignComponent = Signing.AirSigning()
+    makeDirectoryDeleteAndCreate(env_vars["SIGN_UP_IMGS_PATH"])
+    for countSign in range(1, 6):
+        airSignComponent.drawSign(env_vars["SIGN_UP_IMGS_PATH"], loop=True)
+        if countSign == 5:
+            messagebox.showinfo("Captured Successfully", "Finished.")
+        else:
+            messagebox.showinfo("Captured Successfully", f"{countSign} Added. Please add next air signature.")
+
+    show_signs(env_vars["SIGN_UP_IMGS_PATH"])
+
+
+def show_signs(signs_path):
+    win = Toplevel(signature, bg='#272A37')
     window_width = 350
-    window_height = 350
+    window_height = 550
     screen_width = win.winfo_screenwidth()
     screen_height = win.winfo_screenheight()
     position_top = int(screen_height / 4 - window_height / 4)
     position_right = int(screen_width / 2 - window_width / 2)
     win.geometry(f'{window_width}x{window_height}+{position_right}+{position_top}')
 
-    win.title('Draw Signatures')
-    # win.iconbitmap('images\\aa.ico')
-    win.configure(background='#272A37')
+    def disable_event():
+        pass
+
+    win.protocol("WM_DELETE_WINDOW", disable_event)
+
+    win.title('Confirm')
+
+    win.grab_set()
+
+    # ================ Header Text Right =======================
+    headerText = Label(
+        win,
+        anchor="nw",
+        text="Your Input Signatures",
+        fg="#FFFFFF",
+        font=("yu gothic ui Bold", 20 * -1),
+        bg="#272A37"
+    )
+    headerText.place(x=75, y=10)
+
+    label = list(range(len(os.listdir(signs_path))))
+
+    # ============== SHOW ALL SIGNATURES ========================
+    for ix, file in enumerate(os.listdir(signs_path)):
+        image = convertImage(os.path.join(signs_path, file))
+        image = image.resize((320, 80))
+        photo = ImageTk.PhotoImage(image)
+        label[ix] = Label(win, image=photo)
+        label[ix].image = photo
+        label[ix].place(x=15, y=(50 + ix * 90), width=320, height=80)
+
     win.resizable(False, False)
+
+    def close():
+        win.grab_release()
+        win.destroy()
+
+    ok_btn = ttk.Button(win, text="OK", command=close)
+    ok_btn.place(x=135, y=510)
 
 
 def clear_signup():
@@ -511,11 +538,26 @@ def signup():
     elif passwordName_entry.get() != confirm_passwordName_entry.get():
         messagebox.showerror("Error", "Password and Confirmed Password Didn't Match")
     else:
-        user['firstName'] = firstName_entry.get()
-        user['lastName'] = lastName_entry.get()
-        user['email'] = emailName_entry.get()
-        user['password'] = passwordName_entry.get()
+        try:
+            newSignImages = [env_vars["SIGN_UP_IMGS_PATH"] + f"//{imageName}" for imageName in
+                             os.listdir(env_vars["SIGN_UP_IMGS_PATH"])]
+            if len(newSignImages) != 5:
+                messagebox.showerror("Alert", "Please complete all procedures correctly.")
+                return
 
+            signUpResponse = authentication.sign_up(firstName_entry.get() + "_" + lastName_entry.get(),
+                                                    emailName_entry.get(), passwordName_entry.get(), newSignImages)
+            if signUpResponse:
+                messagebox.showinfo("Welcome", "Sign up successfully !...")
+            else:
+                messagebox.showerror("Alert", "Signup Failed")
+                return
+
+        except FileNotFoundError as e:
+            messagebox.showerror("Missing", "Please put your signatures")
+            return
+
+        deleteDirectory(env_vars["SIGN_UP_IMGS_PATH"])
         clear_signup()
         show_frame(sign_in)
 
@@ -525,8 +567,6 @@ def signup():
 # ====================================================================================
 
 # Sign Up Text Variables
-Update_FirstName = StringVar()
-Update_LastName = StringVar()
 Update_Password = StringVar()
 Update_ConfirmPassword = StringVar()
 
@@ -559,45 +599,6 @@ update_headerText1 = Label(
 )
 update_headerText1.place(x=110, y=45)
 
-# ================ Header Text Right ====================
-update_headerText_image_right = PhotoImage(file="assets\\headerText_image.png")
-update_headerText_image_label2 = Label(
-    update_bg_image,
-    image=update_headerText_image_right,
-    bg="#272A37"
-)
-update_headerText_image_label2.place(x=640, y=45)
-
-update_headerText2 = Label(
-    update_bg_image,
-    anchor="nw",
-    text="Signatures",
-    fg="#FFFFFF",
-    font=("yu gothic ui Bold", 20 * -1),
-    bg="#272A37"
-)
-update_headerText2.place(x=690, y=45)
-
-# ============== SHOW ALL SIGNATURES ========================
-update_sign_image_right = PhotoImage(file="assets\\button_1.png").zoom(20).subsample(30)
-for i in range(5):
-    update_sign_image_label = Label(
-        update_bg_image,
-        image=update_sign_image_right,
-        bg="red"
-    )
-    update_sign_image_label.place(x=640, y=(121 + i * 70))
-
-# ================ UPDATE USER HEADER ====================
-update_user_header = Label(
-    update_bg_image,
-    text="Update User",
-    fg="#FFFFFF",
-    font=("yu gothic ui Bold", 28 * -1),
-    bg="#272A37"
-)
-update_user_header.place(x=75, y=121)
-
 # ================ NOT NOW TEXT ====================
 update_text = Label(
     update_bg_image,
@@ -623,86 +624,14 @@ update_back = Button(
 )
 update_back.place(x=230, y=185, width=60, height=35)
 
-# ================ First Name Section ====================
-update_firstName_image = PhotoImage(file="assets\\input_img.png")
-update_firstName_image_Label = Label(
-    update_bg_image,
-    image=update_firstName_image,
-    bg="#272A37"
-)
-update_firstName_image_Label.place(x=80, y=242)
-
-update_firstName_text = Label(
-    update_firstName_image_Label,
-    text="First name",
-    fg="#FFFFFF",
-    font=("yu gothic ui SemiBold", 13 * -1),
-    bg="#3D404B"
-)
-update_firstName_text.place(x=25, y=0)
-
-update_firstName_icon = PhotoImage(file="assets\\name_icon.png")
-update_firstName_icon_Label = Label(
-    update_firstName_image_Label,
-    image=update_firstName_icon,
-    bg="#3D404B"
-)
-update_firstName_icon_Label.place(x=159, y=15)
-
-update_firstName_entry = Entry(
-    update_firstName_image_Label,
-    bd=0,
-    bg="#3D404B",
-    highlightthickness=0,
-    font=("yu gothic ui SemiBold", 16 * -1),
-    textvariable=Update_FirstName
-)
-update_firstName_entry.place(x=8, y=17, width=140, height=27)
-
-# ================ Last Name Section ====================
-update_lastName_image = PhotoImage(file="assets\\input_img.png")
-update_lastName_image_Label = Label(
-    update_bg_image,
-    image=update_lastName_image,
-    bg="#272A37"
-)
-update_lastName_image_Label.place(x=293, y=242)
-
-update_lastName_text = Label(
-    update_lastName_image_Label,
-    text="Last name",
-    fg="#FFFFFF",
-    font=("yu gothic ui SemiBold", 13 * -1),
-    bg="#3D404B"
-)
-update_lastName_text.place(x=25, y=0)
-
-update_lastName_icon = PhotoImage(file="assets\\name_icon.png")
-update_lastName_icon_Label = Label(
-    update_lastName_image_Label,
-    image=update_lastName_icon,
-    bg="#3D404B"
-)
-update_lastName_icon_Label.place(x=159, y=15)
-
-update_lastName_entry = Entry(
-    update_lastName_image_Label,
-    bd=0,
-    bg="#3D404B",
-    highlightthickness=0,
-    font=("yu gothic ui SemiBold", 16 * -1),
-    textvariable=Update_LastName
-)
-update_lastName_entry.place(x=8, y=17, width=140, height=27)
-
 # ================ Password Name Section ====================
-update_passwordName_image = PhotoImage(file="assets\\input_img.png")
+update_passwordName_image = PhotoImage(file="assets\\email.png")
 update_passwordName_image_Label = Label(
     update_bg_image,
     image=update_passwordName_image,
     bg="#272A37"
 )
-update_passwordName_image_Label.place(x=80, y=311)
+update_passwordName_image_Label.place(x=80, y=242)
 
 update_passwordName_text = Label(
     update_passwordName_image_Label,
@@ -719,7 +648,7 @@ update_passwordName_icon_Label = Label(
     image=update_passwordName_icon,
     bg="#3D404B"
 )
-update_passwordName_icon_Label.place(x=159, y=15)
+update_passwordName_icon_Label.place(x=370, y=15)
 
 update_passwordName_entry = Entry(
     update_passwordName_image_Label,
@@ -730,22 +659,22 @@ update_passwordName_entry = Entry(
     show="*",
     textvariable=Update_Password
 )
-update_passwordName_entry.place(x=8, y=17, width=140, height=27)
+update_passwordName_entry.place(x=8, y=17, width=354, height=27)
 
 update_password_check_btn = Checkbutton(update_bg_image, text='show password', fg="#FFFFFF", bg='#272A37',
                                         selectcolor='#272A37', activebackground='#272A37', bd=0,
                                         font=("yu gothic ui", 11, 'bold'),
                                         command=lambda: show_password(update_passwordName_entry))
-update_password_check_btn.place(x=120, y=370)
+update_password_check_btn.place(x=120, y=300)
 
 # ================ Confirm Password Name Section ====================
-update_confirm_passwordName_image = PhotoImage(file="assets\\input_img.png")
+update_confirm_passwordName_image = PhotoImage(file="assets\\email.png")
 update_confirm_passwordName_image_Label = Label(
     update_bg_image,
     image=update_confirm_passwordName_image,
     bg="#272A37"
 )
-update_confirm_passwordName_image_Label.place(x=293, y=311)
+update_confirm_passwordName_image_Label.place(x=80, y=333)
 
 update_confirm_passwordName_text = Label(
     update_confirm_passwordName_image_Label,
@@ -762,7 +691,7 @@ update_confirm_passwordName_icon_Label = Label(
     image=update_confirm_passwordName_icon,
     bg="#3D404B"
 )
-update_confirm_passwordName_icon_Label.place(x=159, y=15)
+update_confirm_passwordName_icon_Label.place(x=370, y=15)
 
 update_confirm_passwordName_entry = Entry(
     update_confirm_passwordName_image_Label,
@@ -779,7 +708,7 @@ update_confirm_check_btn = Checkbutton(update_bg_image, text='show password', fg
                                        selectcolor='#272A37', activebackground='#272A37', bd=0,
                                        font=("yu gothic ui", 11, 'bold'),
                                        command=lambda: show_password(update_confirm_passwordName_entry))
-update_confirm_check_btn.place(x=330, y=370)
+update_confirm_check_btn.place(x=120, y=395)
 
 # =============== Add Sign Button ====================
 update_add_sign_button = Button(
@@ -795,7 +724,7 @@ update_add_sign_button = Button(
     command=lambda: add_signature()
 )
 
-update_add_sign_button.place(x=144, y=405, width=300, height=45)
+update_add_sign_button.place(x=144, y=430, width=300, height=45)
 
 # =============== Submit Button ====================
 update_submit_buttonImage = PhotoImage(
@@ -810,7 +739,7 @@ update_submit_button = Button(
     cursor="hand2",
     command=lambda: update()
 )
-update_submit_button.place(x=130, y=460, width=333, height=65)
+update_submit_button.place(x=130, y=485, width=333, height=65)
 
 # ================ Header Text Down ====================
 update_headerText_image_down = PhotoImage(file="assets\\headerText_image.png")
@@ -831,7 +760,7 @@ update_headerText3 = Label(
 update_headerText3.place(x=700, y=530)
 
 
-def add_signature():
+def add_update_signature():
     win = Toplevel()
     window_width = 350
     window_height = 350
@@ -848,8 +777,6 @@ def add_signature():
 
 
 def clear_update():
-    Update_FirstName.set("")
-    Update_LastName.set("")
     Update_Password.set("")
     Update_ConfirmPassword.set("")
 
@@ -860,13 +787,11 @@ def clear_update():
 def update():
     user = dict()
 
-    if update_firstName_entry.get() == "" or update_lastName_entry.get() == "" or update_passwordName_entry.get() == "" or update_confirm_passwordName_entry.get() == "":
+    if update_passwordName_entry.get() == "" or update_confirm_passwordName_entry.get() == "":
         messagebox.showerror("Error", "All Fields are Required")
     elif update_passwordName_entry.get() != update_confirm_passwordName_entry.get():
         messagebox.showerror("Error", "Password and Confirmed Password Didn't Match")
     else:
-        user['firstName'] = update_firstName_entry.get()
-        user['lastName'] = update_lastName_entry.get()
         user['password'] = update_passwordName_entry.get()
 
         clear_update()
@@ -1296,6 +1221,7 @@ def close_app():
     global AUTHENTICATE
     if AUTHENTICATE:
         authentication.logout()
+    deleteDirectory(env_vars["SIGN_UP_IMGS_PATH"])
     signature.destroy()
 
 

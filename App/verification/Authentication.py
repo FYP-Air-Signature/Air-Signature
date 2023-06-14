@@ -1,10 +1,11 @@
 import base64
 import requests
+from requests_toolbelt import MultipartEncoder
 from App.verification.Preprocess import makeDirectoryDeleteAndCreate, deleteDirectory
 from dotenv import dotenv_values
 from PIL import Image
 import io
-
+import json
 # Load environment variables from .env file
 env_vars = dotenv_values()
 
@@ -18,11 +19,28 @@ class AuthAPI:
 
     def sign_up(self, username, email, password, signatures):
         url = f"{self.base_url}/signup"
-        data = {
-            "userDetails": {"username": username, "email": email, "password": password},
-            "files": signatures
+
+        # Convert dictionary to JSON
+        json_data = json.dumps({"username": username, "email": email, "password": password})
+        files = {}
+        for idx, img in enumerate(signatures):
+            files[f"file{idx+1}"] = (f"tempSign{idx+1}.png", open(img, "rb"), "image/png")
+
+
+        # Create a multipart/form-data object
+        multipart_data = MultipartEncoder(
+            fields={
+                "userDetails": str(json_data),
+                **files
+            }
+        )
+
+        headers = {
+            "Content-Type":  multipart_data.content_type
         }
-        response = requests.post(url, data=data)
+
+        print(multipart_data)
+        response = requests.post(url, data=multipart_data.to_string(), headers=headers)
         if response.status_code == 200:
             print(response.json().get("message"))
             return True
